@@ -63,7 +63,24 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
       //for (.....)  
 //        	populate the board with squares here. Note that the board is composed of 64 squares alternating from 
 //        	white to black.
+    int rowColor = 0;
 
+            for (int i=0; i<board[0].length; i++){
+                for(int j=0; j<board.length; j++){
+                    if(rowColor % 2 ==0 ){
+                        board[i][j]= new Square(this, true, i,j);
+                        this.add(board[i][j]);
+                    }
+                    else{
+                        board[i][j]= new Square(this, false, i,j);
+                        this.add(board[i][j]);
+                    }
+                    rowColor++;
+
+                }  
+                rowColor++;
+            }  
+        
         initializePieces();
 
         this.setPreferredSize(new Dimension(400, 400));
@@ -81,9 +98,50 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
 	//it's up to you how you wish to arrange your pieces.
     private void initializePieces() {
     	
-    	board[0][0].put(new Piece(true, RESOURCES_WKING_PNG));
+    	board[0][0].put(new King(true, RESOURCES_WKING_PNG));
+        board[0][1].put(new Knight(true, RESOURCES_WKNIGHT_PNG));
+        board[7][7].put(new King(false, RESOURCES_BKING_PNG));
+        board[7][6].put(new King(false, RESOURCES_BKNIGHT_PNG));
 
     }
+    //precondition - the board is initialized and contains a king of either color. The boolean kingColor corresponds to the color of the king we wish to know the status of.
+          //postcondition - returns true of the king is in check and false otherwise.
+	public boolean isInCheck(boolean kingColor){
+        Square kingSpot = null;
+        
+        for (int row=0; row<8; row++) {
+            for (int col = 0; col < 8; col++) {
+                Square s = board[row][col];
+                if (s.isOccupied() && 
+                    s.getOccupyingPiece() instanceof King && s.getOccupyingPiece().getColor() == kingColor) {
+                    kingSpot = s;
+                    break;
+                }
+            }
+        }
+        if (kingSpot == null){ 
+            return false;}
+    
+        boolean notKing = !kingColor;
+
+        for (int row = 0; row < 8; row++) {
+        
+            for (int col = 0; col < 8; col++) {
+        
+                Square s = board[row][col];
+                    if (s.isOccupied() && s.getOccupyingPiece().getColor() == notKing) {
+                        Piece p = s.getOccupyingPiece();
+                        List<Square> controlled = p.getControlledSquares(board, s);
+                            if (controlled.contains(kingSpot)) {
+                                return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+		
+    
 
     public Square[][] getSquareArray() {
         return this.board;
